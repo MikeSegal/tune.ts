@@ -1,7 +1,5 @@
-const drawChannel = (
-    data: Float32Array | number[],
-    context: CanvasRenderingContext2D
-) => {};
+// TODO: add a default render function
+const drawChannel = () => {};
 
 const getUnsafeContext = (canvas: HTMLCanvasElement) => {
     return canvas.getContext("2d")!;
