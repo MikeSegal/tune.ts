@@ -1,10 +1,10 @@
 import { DEFAULT_RENDERER_CONFIG } from "./consts";
-import {
+import { drawChannel, getUnsafeContext } from "./utils";
+import type {
     OptionalRenderConfig,
     RenderConfig,
     RenderFunctionType,
 } from "./types";
-import { drawChannel, getUnsafeContext } from "./utils";
 
 class Renderer {
     private element: HTMLCanvasElement;

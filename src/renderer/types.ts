@@ -1,4 +1,4 @@
-import { Optional } from "../types";
+import type { Optional } from "../types";
 
 type RenderFunctionType = (
     data: Float32Array | number[],
