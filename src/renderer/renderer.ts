@@ -26,7 +26,7 @@ class Renderer {
         this.element = element;
         this.context = getUnsafeContext(this.element);
         this.data = data;
-        this.renderConfig = { ...renderConfig, ...DEFAULT_RENDERER_CONFIG };
+        this.renderConfig = { ...DEFAULT_RENDERER_CONFIG, ...renderConfig };
         this.renderFunction = renderFunction ?? drawChannel;
 
         this.draw();

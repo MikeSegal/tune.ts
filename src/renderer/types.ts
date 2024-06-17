@@ -10,6 +10,7 @@ type RenderConfig = {
     windowWidth: number;
     barGap: number;
     barWidth: number;
+    waveColor: string;
 };
 
 type OptionalRenderConfig = Optional<RenderConfig, "barGap" | "barWidth">;
