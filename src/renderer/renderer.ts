@@ -34,12 +34,13 @@ class Renderer {
 
     zoom(newAudioDuration: number) {
         const { audioDuration, windowWidth } = this.renderConfig;
-        const displayedPercentage = (newAudioDuration / audioDuration) * 100;
+        const newCanvasWidth = windowWidth * (audioDuration / newAudioDuration);
 
-        this.element.width = windowWidth * displayedPercentage;
+        this.element.width = newCanvasWidth;
     }
 
     draw() {
+        this.element.innerHTML = "";
         this.renderFunction(this.data, this.context);
     }
 }
