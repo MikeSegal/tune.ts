@@ -5,6 +5,7 @@ import type {
     RenderConfig,
     RenderFunctionType,
 } from "./types";
+import type { TimeRange } from "../types";
 
 class Renderer {
     private element: HTMLCanvasElement;
@@ -14,6 +15,8 @@ class Renderer {
     private data: Float32Array | number[];
 
     private renderConfig: RenderConfig;
+
+    private timeRange: TimeRange;
 
     private renderFunction: RenderFunctionType;
 
@@ -27,9 +30,10 @@ class Renderer {
         this.context = getUnsafeContext(this.element);
         this.data = data;
         this.renderConfig = { ...DEFAULT_RENDERER_CONFIG, ...renderConfig };
+        this.timeRange = { start: 0, end: renderConfig.audioDuration };
         this.renderFunction = renderFunction ?? drawChannel;
 
-        this.draw(0, this.renderConfig.audioDuration);
+        this.render();
     }
 
     zoom(newAudioDuration: number) {
@@ -39,10 +43,16 @@ class Renderer {
         this.element.width = newCanvasWidth;
     }
 
-    draw(start: number, end: number) {
+    setRange(start: number, end: number) {
+        this.timeRange = { start, end };
+        this.render();
+    }
+
+    render() {
         this.element.innerHTML = "";
 
         const { audioDuration, barGap, barWidth } = this.renderConfig;
+        const { start, end } = this.timeRange;
 
         // TODO: figure out if there is a better way to calculate the total number of displayed samples
         const newElementWidth =
