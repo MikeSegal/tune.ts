@@ -2,12 +2,11 @@ import type { Optional } from "../types";
 
 type RenderFunctionType = (
     data: Float32Array | number[],
-    context: CanvasRenderingContext2D
+    context: CanvasRenderingContext2D,
+    renderConfig: RenderConfig
 ) => void;
 
 type RenderConfig = {
-    audioDuration: number;
-    windowWidth: number;
     barGap: number;
     barWidth: number;
     waveColor: string;

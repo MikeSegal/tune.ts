@@ -8,11 +8,13 @@ import type {
 import type { TimeRange } from "../types";
 
 class Renderer {
-    private element: HTMLCanvasElement;
+    private canvas: HTMLCanvasElement;
 
     private context: CanvasRenderingContext2D;
 
     private data: Float32Array | number[];
+
+    private audioDuration: number;
 
     private renderConfig: RenderConfig;
 
@@ -23,24 +25,22 @@ class Renderer {
     constructor(
         element: HTMLCanvasElement,
         data: Float32Array | number[],
+        audioDuration: number,
         renderConfig: OptionalRenderConfig,
         renderFunction?: RenderFunctionType
     ) {
-        this.element = element;
-        this.context = getUnsafeContext(this.element);
+        this.canvas = element;
+        this.context = getUnsafeContext(this.canvas);
         this.data = data;
-        this.renderConfig = { ...DEFAULT_RENDERER_CONFIG, ...renderConfig };
-        this.timeRange = { start: 0, end: renderConfig.audioDuration };
+        this.audioDuration = audioDuration;
+        this.renderConfig = {
+            ...DEFAULT_RENDERER_CONFIG,
+            ...renderConfig,
+        };
+        this.timeRange = { start: 0, end: audioDuration };
         this.renderFunction = renderFunction ?? drawChannel;
 
         this.render();
-    }
-
-    zoom(newAudioDuration: number) {
-        const { audioDuration, windowWidth } = this.renderConfig;
-        const newCanvasWidth = windowWidth * (audioDuration / newAudioDuration);
-
-        this.element.width = newCanvasWidth;
     }
 
     setRange(start: number, end: number) {
@@ -48,38 +48,49 @@ class Renderer {
         this.render();
     }
 
-    render() {
-        this.element.innerHTML = "";
+    setWidth(width: number) {
+        this.canvas.width = width;
+        this.render();
+    }
 
-        const { audioDuration, barGap, barWidth } = this.renderConfig;
+    render() {
+        const filteredData: number[] = [];
+        const { barGap, barWidth } = this.renderConfig;
         const { start, end } = this.timeRange;
 
-        // TODO: figure out if there is a better way to calculate the total number of displayed samples
-        const newElementWidth =
-            this.element.width * (audioDuration / (end - start));
+        const currentRange = end - start;
 
-        const samples = newElementWidth / (barWidth + barGap);
-        const dataPerSample = this.data.length / samples;
+        const sampleRate = Math.ceil(this.data.length / this.audioDuration);
+        const startingDataPoint = Math.ceil(sampleRate * start);
+        const numberOfDataPointsInRange = Math.ceil(sampleRate * currentRange);
 
-        const startSample = Math.floor(samples * (start / audioDuration));
-        const endSample = Math.floor(samples * (end / audioDuration));
+        const displayedBars = Math.ceil(
+            this.canvas.width / (barWidth + barGap)
+        );
 
-        const filteredData: number[] = [];
+        const dataPointsPerBar = Math.ceil(
+            numberOfDataPointsInRange / displayedBars
+        );
 
-        for (let i = startSample; i <= endSample; i++) {
-            let maxDataPoint = -2;
+        for (let i = 0; i < displayedBars; i++) {
+            let value = -2;
 
-            for (let j = 0; j < dataPerSample; j++) {
-                // TODO: verify this
-                // * Going over all of the possible data points for that specific bar, and choosing the tallest
-                const sample = this.data[i * dataPerSample + j];
-                maxDataPoint = Math.max(maxDataPoint, sample);
+            for (let j = 0; j < dataPointsPerBar; j++) {
+                const dataPoint =
+                    this.data[startingDataPoint + i * dataPointsPerBar + j];
+
+                value = Math.max(value, dataPoint);
             }
 
-            filteredData.push(maxDataPoint);
+            filteredData.push(value);
         }
 
-        this.renderFunction(filteredData, this.context);
+        this.clear();
+        this.renderFunction(filteredData, this.context, this.renderConfig);
+    }
+
+    private clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
