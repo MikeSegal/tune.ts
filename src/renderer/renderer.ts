@@ -86,7 +86,12 @@ class Renderer {
         }
 
         this.clear();
-        this.renderFunction(filteredData, this.context, this.renderConfig);
+        this.renderFunction(
+            filteredData,
+            this.canvas.height,
+            this.context,
+            this.renderConfig
+        );
     }
 
     private clear() {
