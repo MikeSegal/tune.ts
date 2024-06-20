@@ -1,15 +1,16 @@
-import { Optional } from "../types";
+import type { Optional } from "../types";
 
 type RenderFunctionType = (
     data: Float32Array | number[],
-    context: CanvasRenderingContext2D
+    canvasHeight: number,
+    context: CanvasRenderingContext2D,
+    renderConfig: RenderConfig
 ) => void;
 
 type RenderConfig = {
-    audioDuration: number;
-    windowWidth: number;
     barGap: number;
     barWidth: number;
+    waveColor: string;
 };
 
 type OptionalRenderConfig = Optional<RenderConfig, "barGap" | "barWidth">;
