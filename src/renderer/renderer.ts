@@ -1,10 +1,6 @@
 import { DEFAULT_RENDERER_CONFIG } from "./consts";
 import { drawChannel, getUnsafeContext } from "./utils";
-import type {
-    OptionalRenderConfig,
-    RenderConfig,
-    RenderFunctionType,
-} from "./types";
+import type { RenderConfig, RenderFunctionType } from "./types";
 import type { TimeRange } from "../types";
 
 class Renderer {
@@ -26,7 +22,7 @@ class Renderer {
         element: HTMLCanvasElement,
         data: Float32Array | number[],
         audioDuration: number,
-        renderConfig: OptionalRenderConfig,
+        renderConfig?: RenderConfig,
         renderFunction?: RenderFunctionType
     ) {
         this.canvas = element;
@@ -53,7 +49,14 @@ class Renderer {
         this.render();
     }
 
+    setHeight(height: number) {
+        this.canvas.height = height;
+        this.render();
+    }
+
     render() {
+        // TODO: Separate the calculation and render functions
+
         const filteredData: number[] = [];
         const { barGap, barWidth } = this.renderConfig;
         const { start, end } = this.timeRange;
@@ -92,6 +95,10 @@ class Renderer {
             this.context,
             this.renderConfig
         );
+    }
+
+    destroy() {
+        this.canvas.remove();
     }
 
     private clear() {
