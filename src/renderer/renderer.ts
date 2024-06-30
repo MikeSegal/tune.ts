@@ -18,6 +18,8 @@ class Renderer {
 
     private renderFunction: RenderFunctionType;
 
+    private dataCache: Map<number, number> = new Map();
+
     constructor(
         element: HTMLCanvasElement,
         data: Float32Array | number[],
@@ -34,8 +36,8 @@ class Renderer {
             ...renderConfig,
         };
         this.timeRange = { start: 0, end: audioDuration };
-        this.renderFunction = renderFunction ?? drawChannel;
 
+        this.renderFunction = renderFunction ?? drawChannel;
         this.render();
     }
 
@@ -54,9 +56,7 @@ class Renderer {
         this.render();
     }
 
-    render() {
-        // TODO: Separate the calculation and render functions
-
+    calculate() {
         const filteredData: number[] = [];
         const { barGap, barWidth } = this.renderConfig;
         const { start, end } = this.timeRange;
@@ -71,34 +71,52 @@ class Renderer {
             this.canvas.width / (barWidth + barGap)
         );
 
+        const virtualBarCount = Math.ceil(
+            displayedBars * (this.audioDuration / currentRange)
+        );
+
+        const startVirtualBar =
+            virtualBarCount * (startingDataPoint / this.data.length);
+
         const dataPointsPerBar = Math.ceil(
             numberOfDataPointsInRange / displayedBars
         );
 
         for (let i = 0; i < displayedBars; i++) {
             let value = -2;
+            const cacheKey = startVirtualBar + i;
 
-            for (let j = 0; j < dataPointsPerBar; j++) {
-                const dataPoint =
-                    this.data[startingDataPoint + i * dataPointsPerBar + j];
+            if (this.dataCache.has(cacheKey)) {
+                filteredData.push(this.dataCache.get(cacheKey)!);
+            } else {
+                for (let j = 0; j < dataPointsPerBar; j++) {
+                    const dataPoint =
+                        this.data[startingDataPoint + i * dataPointsPerBar + j];
 
-                value = Math.max(value, dataPoint);
+                    value = Math.max(value, dataPoint);
+                }
+
+                this.dataCache.set(cacheKey, value);
+                filteredData.push(value);
             }
-
-            filteredData.push(value);
         }
 
-        this.clear();
-        this.renderFunction(
-            filteredData,
-            this.canvas.height,
-            this.context,
-            this.renderConfig
-        );
+        this.data = filteredData;
     }
 
     destroy() {
         this.canvas.remove();
+    }
+
+    private render() {
+        this.calculate();
+        this.clear();
+        this.renderFunction(
+            this.data,
+            this.canvas.height,
+            this.context,
+            this.renderConfig
+        );
     }
 
     private clear() {
